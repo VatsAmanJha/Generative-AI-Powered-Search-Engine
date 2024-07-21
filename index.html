@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Search Engine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .search-container {
+            max-width: 800px;
+            margin: auto;
+            text-align: center;
+        }
+        .search-input {
+            width: 70%;
+            padding: 12px;
+            font-size: 18px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .search-button {
+            padding: 12px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .search-button:hover {
+            background-color: #45a049;
+        }
+        .search-results {
+            margin-top: 30px;
+            text-align: left;
+        }
+        .result-item {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .result-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .result-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .result-description {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .result-url {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <h1 style="color: #333;">AI Search Engine</h1>
+        <form id="search-form" style="margin-bottom: 20px;">
+            <input type="text" id="query" name="query" class="search-input" placeholder="Enter your question...">
+            <button type="submit" class="search-button">Search</button>
+        </form>
+        <div class="search-results" id="search-results">
+            <!-- Results will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('search-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const query = document.getElementById('query').value.trim();
+
+            if (!query) {
+                alert('Please enter a question to search.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/generate_content/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_question: query })
+                });
+                const data = await response.json();
+
+                // Clear previous results
+                document.getElementById('search-results').innerHTML = '';
+
+                // Display new results
+                const htmlResponse = data.html_response;
+                const url = data.url;
+                const userQuestion = data.user_question;
+
+                const resultItem = document.createElement('div');
+                resultItem.classList.add('result-item');
+
+                const titleElement = document.createElement('div');
+                titleElement.classList.add('result-title');
+                titleElement.textContent = `Generated Content for: ${userQuestion}`;
+
+                const contentElement = document.createElement('div');
+                contentElement.classList.add('result-description');
+                contentElement.innerHTML = htmlResponse;
+
+                const urlElement = document.createElement('div');
+                urlElement.classList.add('result-url');
+                const introText = document.createElement('span');
+                introText.textContent = 'Source: ';
+                urlElement.appendChild(introText);
+                const link = document.createElement('a');
+                link.href = url;
+                link.textContent = url;
+                urlElement.appendChild(link);
+
+                resultItem.appendChild(titleElement);
+                resultItem.appendChild(contentElement);
+                resultItem.appendChild(urlElement);
+
+                document.getElementById('search-results').appendChild(resultItem);
+            } catch (error) {
+                console.error('Error fetching search results:', error);
+            }
+        });
+    </script>
+</body>
+</html>
